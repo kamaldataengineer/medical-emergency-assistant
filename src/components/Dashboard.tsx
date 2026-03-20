@@ -100,6 +100,7 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
                 onClick={handleAudioPlayback}
                 className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors"
                 title="Read Assessment Aloud"
+                aria-label="Read Assessment Aloud"
               >
                 <Volume2 className="w-4 h-4" />
               </button>

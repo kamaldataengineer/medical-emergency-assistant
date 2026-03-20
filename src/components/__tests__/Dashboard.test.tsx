@@ -1,9 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import Dashboard from "../Dashboard";
 
+import React from "react";
+
 jest.mock("@react-google-maps/api", () => ({
-  GoogleMap: ({ children }: any) => <div data-testid="mock-google-map">{children}</div>,
-  LoadScript: ({ children }: any) => <div data-testid="mock-load-script">{children}</div>,
+  GoogleMap: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-google-map">{children}</div>,
+  LoadScript: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-load-script">{children}</div>,
   Marker: () => <div data-testid="mock-marker" />,
 }));
 
