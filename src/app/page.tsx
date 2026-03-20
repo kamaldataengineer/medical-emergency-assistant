@@ -1,12 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useCallback, type ReactElement } from "react";
+import dynamic from "next/dynamic";
 import EmergencyForm from "@/components/EmergencyForm";
-import Dashboard from "@/components/Dashboard";
 import ProcessingAnimation from "@/components/ProcessingAnimation";
 import FollowUpForm from "@/components/FollowUpForm";
 
-export default function Home() {
+// Tactically split the bundle—Dashboard and Maps only load after the AI logic completes
+const Dashboard = dynamic(() => import("@/components/Dashboard"), {
+  loading: () => <ProcessingAnimation />
+});
+
+/**
+ * Root Application Entry for the Medical Emergency Assistant.
+ * Orchestrates states between multi-modal ingestion, AI analysis, and dashboard routing.
+ */
+export default function Home(): ReactElement {
   const [status, setStatus] = useState<"idle" | "processing" | "needs_info" | "complete">("idle");
   const [data, setData] = useState<React.ComponentProps<typeof Dashboard>["data"] | null>(null);
   
@@ -14,7 +23,13 @@ export default function Home() {
   const [initialInput, setInitialInput] = useState({ age: "", gender: "", history: "", symptoms: "" });
   const [question, setQuestion] = useState("");
 
-  const handleAnalyze = async (dataPayload: typeof initialInput, forceRoute: boolean = false) => {
+  /**
+   * Dispatches patient data to the Gemini-powered triage API.
+   * 
+   * @param {typeof initialInput} dataPayload - Mixed patient demographic and symptom block.
+   * @param {boolean} forceRoute - Internal flag for follow-up skip logic.
+   */
+  const handleAnalyze = useCallback(async (dataPayload: typeof initialInput, forceRoute: boolean = false): Promise<void> => {
     setStatus("processing");
     if (!forceRoute) {
       setInitialInput(dataPayload);
@@ -40,7 +55,7 @@ export default function Home() {
       }, 1800);
 
     } catch (e) {
-      console.error(e);
+      console.error("Home Analysis Error:", e);
       setTimeout(() => {
         setData({
           hospitalName: "Central Med Center",
@@ -48,12 +63,12 @@ export default function Home() {
           eta: "6 mins",
           department: "Emergency Response",
           severity: "HIGH",
-          summary: "Fallback emergency routed."
+          summary: "Fallback emergency routed due to network instability."
         });
         setStatus("complete");
       }, 1500);
     }
-  };
+  }, [initialInput]);
 
   const handleFollowUpSubmit = (additionalInfo: string) => {
     handleAnalyze({ ...initialInput, symptoms: `${initialInput.symptoms}. Additional details: ${additionalInfo}` }, true);

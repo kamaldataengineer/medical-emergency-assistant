@@ -16,7 +16,14 @@ const InputSchema = z.object({
   forceRoute: z.boolean().default(false).optional(),
 });
 
-export async function POST(req: Request) {
+/**
+ * Primary diagnostic orchestrator for the Medical Emergency Assistant.
+ * Validates incoming multimodal signals and executes Gemini AI triage logic.
+ * 
+ * @param {Request} req - The incoming patient data payload.
+ * @returns {Promise<NextResponse>} JSON response containing hospital routing instructions.
+ */
+export async function POST(req: Request): Promise<NextResponse> {
   try {
     // 3. Prevent arbitrary inputs by strictly parsing JSON
     const body = await req.json();

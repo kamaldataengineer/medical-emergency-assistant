@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, memo, type ReactElement, useCallback } from "react";
 import { Activity, User, Send, Mic, Image as ImageIcon, FileText, Globe } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -15,7 +15,14 @@ interface EmergencyFormProps {
   onSubmit: (data: EmergencyFormData) => void;
 }
 
-export default function EmergencyForm({ onSubmit }: EmergencyFormProps) {
+/**
+ * Primary multi-modal ingestion layer for the Medical Emergency Assistant. 
+ * Facilitates the capture of messy, unstructured data alongside mandatory patient metadata.
+ * 
+ * @param {EmergencyFormProps} props - The submission handler hook.
+ * @returns {ReactElement} The structurally validated React interface.
+ */
+const EmergencyFormComponent = ({ onSubmit }: EmergencyFormProps): ReactElement => {
   const [formData, setFormData] = useState<EmergencyFormData>({
     age: "",
     gender: "",
@@ -23,20 +30,20 @@ export default function EmergencyForm({ onSubmit }: EmergencyFormProps) {
     symptoms: ""
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent): void => {
     e.preventDefault();
     if (!formData.symptoms.trim() || !formData.age || !formData.gender || !formData.history) return;
     onSubmit(formData);
-  };
+  }, [formData, onSubmit]);
 
-  const handleMockInput = (type: string) => {
+  const handleMockInput = useCallback((type: string): void => {
     // This mocks the UI capability of other multimodal inputs
     alert(`[Demo] Activated ${type} Input Layer. In production, this opens a media picker or hardware hook.`);
-  };
+  }, []);
 
   return (
     <motion.div 
@@ -65,8 +72,9 @@ export default function EmergencyForm({ onSubmit }: EmergencyFormProps) {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-medium text-slate-500 block mb-1">Age</label>
+              <label htmlFor="age-input" className="text-xs font-medium text-slate-500 block mb-1">Age</label>
               <input
+                id="age-input"
                 required
                 type="number"
                 name="age"
@@ -77,8 +85,9 @@ export default function EmergencyForm({ onSubmit }: EmergencyFormProps) {
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-500 block mb-1">Gender</label>
+              <label htmlFor="gender-select" className="text-xs font-medium text-slate-500 block mb-1">Gender</label>
               <select
+                id="gender-select"
                 required
                 name="gender"
                 value={formData.gender}
@@ -93,8 +102,9 @@ export default function EmergencyForm({ onSubmit }: EmergencyFormProps) {
             </div>
           </div>
           <div>
-             <label className="text-xs font-medium text-slate-500 block mb-1">Pre-Medical History</label>
+             <label htmlFor="history-input" className="text-xs font-medium text-slate-500 block mb-1">Pre-Medical History</label>
              <textarea
+               id="history-input"
                required
                name="history"
                value={formData.history}
@@ -107,11 +117,12 @@ export default function EmergencyForm({ onSubmit }: EmergencyFormProps) {
 
         {/* Messy Input Section */}
         <div className="space-y-3">
-          <label className="text-sm font-bold text-slate-800 dark:text-slate-200 block">
+          <label htmlFor="symptoms-input" className="text-sm font-bold text-slate-800 dark:text-slate-200 block">
             Emergency Description (Messy Input)
           </label>
           <div className="relative">
             <textarea
+              id="symptoms-input"
               required
               name="symptoms"
               value={formData.symptoms}
@@ -146,4 +157,6 @@ export default function EmergencyForm({ onSubmit }: EmergencyFormProps) {
       </form>
     </motion.div>
   );
-}
+};
+
+export default memo(EmergencyFormComponent);

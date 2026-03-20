@@ -2,7 +2,14 @@
 
 import { motion } from "framer-motion";
 import { Hospital, MapPin, Navigation, AlertTriangle, ShieldCheck, Volume2 } from "lucide-react";
-import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+import dynamic from "next/dynamic";
+import React, { useCallback, memo, type ReactElement } from "react";
+
+// Dynamically load the expensive Map component to prevent main-thread blocking on initial triage results
+const EmergencyMap = dynamic(() => import("./EmergencyMap"), { 
+  ssr: false,
+  loading: () => <div className="w-full h-full bg-slate-100 dark:bg-slate-800 animate-pulse flex items-center justify-center text-xs text-slate-400">Loading Map Satellite...</div>
+});
 
 interface DashboardProps {
   data: {
@@ -27,12 +34,15 @@ interface DashboardProps {
  * Evaluates risk parameters and outputs interactive map hooks.
  * 
  * @param {DashboardProps} props - The triage payload enforcing mapped states.
- * @returns {JSX.Element} The strictly structured React interface module mapped dynamically.
+ * @returns {ReactElement} The strictly structured React interface module mapped dynamically.
  */
-export default function Dashboard({ data, onReset }: DashboardProps) {
-  const isCritical = data.severity === "CRITICAL" || data.severity === "HIGH";
+const DashboardComponent = ({ data, onReset }: DashboardProps): ReactElement => {
+  const isCritical: boolean = data.severity === "CRITICAL" || data.severity === "HIGH";
 
-  const handleAudioPlayback = () => {
+  /**
+   * Synthesizes emergency advice via native Web Speech API for incapacitated users.
+   */
+  const handleAudioPlayback = useCallback((): void => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(`Attention. ${data.summary}. ${data.firstAidAdvice ? "Critical action required: " + data.firstAidAdvice : ""}`);
@@ -40,7 +50,7 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
       utterance.pitch = 1.05;
       window.speechSynthesis.speak(utterance);
     }
-  };
+  }, [data.summary, data.firstAidAdvice]);
 
   return (
     <motion.div 
@@ -131,15 +141,7 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
       {/* Map & Mock Alerts Section */}
       <div className="glass-panel rounded-2xl overflow-hidden shadow-sm flex flex-col md:flex-row min-h-[16rem]">
         <div className="flex-1 relative bg-slate-200 dark:bg-slate-800 flex items-center justify-center p-0 min-h-[16rem]">
-           <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || "AIza_DEV_TEST"}>
-             <GoogleMap
-               mapContainerStyle={{ width: '100%', height: '100%', minHeight: "16rem", borderRadius: "1rem" }}
-               center={{ lat: 37.7749, lng: -122.4194 }}
-               zoom={14}
-             >
-                <Marker position={{ lat: 37.7749, lng: -122.4194 }} />
-             </GoogleMap>
-           </LoadScript>
+           <EmergencyMap hospitalName={data.hospitalName} />
         </div>
         
         <div className="w-full md:w-1/3 bg-slate-50/90 dark:bg-slate-900/90 p-6 flex flex-col justify-center gap-4 border-l border-slate-200 dark:border-slate-800">
@@ -161,4 +163,6 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
       </div>
     </motion.div>
   );
-}
+};
+
+export default memo(DashboardComponent);

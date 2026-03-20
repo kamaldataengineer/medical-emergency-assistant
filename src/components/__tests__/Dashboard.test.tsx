@@ -3,10 +3,11 @@ import Dashboard from "../Dashboard";
 
 import React from "react";
 
-jest.mock("@react-google-maps/api", () => ({
-  GoogleMap: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-google-map">{children}</div>,
-  LoadScript: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-load-script">{children}</div>,
-  Marker: () => <div data-testid="mock-marker" />,
+jest.mock("../EmergencyMap", () => ({
+  __esModule: true,
+  default: ({ hospitalName }: { hospitalName: string }) => (
+    <div data-testid="mock-emergency-map">Map for {hospitalName}</div>
+  )
 }));
 
 const mockData = {

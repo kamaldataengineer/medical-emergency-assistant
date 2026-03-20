@@ -2,8 +2,14 @@
 
 import { motion } from "framer-motion";
 import { Activity } from "lucide-react";
+import React, { memo, type ReactElement } from "react";
 
-export default function ProcessingAnimation() {
+/**
+ * Provides a high-fidelity visual indication of background AI processing logic.
+ * 
+ * @returns {ReactElement} The animated loading interface.
+ */
+const ProcessingAnimationComponent = (): ReactElement => {
   return (
     <div className="flex flex-col items-center justify-center min-h-[40vh] space-y-8">
       <div className="relative">
@@ -25,4 +31,6 @@ export default function ProcessingAnimation() {
       </div>
     </div>
   );
-}
+};
+
+export default memo(ProcessingAnimationComponent);

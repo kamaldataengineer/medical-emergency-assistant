@@ -1,6 +1,4 @@
-"use client";
-
-import { useState } from "react";
+import React, { useState, memo, type ReactElement, useCallback } from "react";
 import { motion } from "framer-motion";
 import { AlertCircle, FastForward, Send } from "lucide-react";
 
@@ -10,17 +8,27 @@ interface FollowUpFormProps {
   onSkip: () => void;
 }
 
-export default function FollowUpForm({ question, onSubmit, onSkip }: FollowUpFormProps) {
+/**
+ * Orchestrates secondary multi-modal data gathering when initial analysis yields high ambiguity.
+ *
+ * @param {FollowUpFormProps} props - The event handlers for submission and bypass.
+ * @returns {ReactElement} The structurally validated follow-up interface.
+ */
+const FollowUpFormComponent = ({ question, onSubmit, onSkip }: FollowUpFormProps): ReactElement => {
   const [info, setInfo] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent): void => {
     e.preventDefault();
     if (!info.trim()) return;
     onSubmit(info);
-  };
+  }, [info, onSubmit]);
+
+  const handleSkip = useCallback((): void => {
+    onSkip();
+  }, [onSkip]);
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       className="glass-panel p-6 md:p-8 rounded-2xl max-w-2xl mx-auto w-full border-t-4 border-t-yellow-400 shadow-2xl"
@@ -44,7 +52,8 @@ export default function FollowUpForm({ question, onSubmit, onSkip }: FollowUpFor
         <div className="space-y-2">
           <textarea
             autoFocus
-            aria-label="Additional Information"
+            id="followup-info-input"
+            aria-label="Additional Emergency Details"
             value={info}
             onChange={(e) => setInfo(e.target.value)}
             placeholder="Type your additional details here..."
@@ -59,10 +68,10 @@ export default function FollowUpForm({ question, onSubmit, onSkip }: FollowUpFor
           >
             <Send className="w-5 h-5 shrink-0" /> Provide Details
           </button>
-          
+
           <button
             type="button"
-            onClick={onSkip}
+            onClick={handleSkip}
             className="flex-1 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-900/50 dark:hover:bg-red-900/40 dark:text-red-400 font-medium py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
           >
             <FastForward className="w-5 h-5 shrink-0" /> Route Me Now
@@ -71,4 +80,6 @@ export default function FollowUpForm({ question, onSubmit, onSkip }: FollowUpFor
       </form>
     </motion.div>
   );
-}
+};
+
+export default memo(FollowUpFormComponent);
