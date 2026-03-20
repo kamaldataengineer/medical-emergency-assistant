@@ -117,8 +117,8 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
            ) : (
              <div className="z-10 bg-white/90 dark:bg-black/90 backdrop-blur-md p-5 rounded-xl border border-slate-200 dark:border-slate-700 text-center max-w-xs w-full shadow-lg m-8">
                 <MapPin className="w-8 h-8 mx-auto text-primary animate-bounce mb-3" />
-                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Google Maps Integration</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Live routing requires NEXT_PUBLIC_GOOGLE_MAPS_KEY in .env.</p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Simulating Route to {data.hospitalName}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">(Live Native Google Maps enabled when API key is supplied in .env. Interactive Simulation running for demo.)</p>
              </div>
            )}
         </div>
