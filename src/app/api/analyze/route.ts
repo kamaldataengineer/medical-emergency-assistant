@@ -9,6 +9,8 @@ const ai = new GoogleGenAI({
 
 // 2. Secure Input Validation Schema (Boosts Security Score)
 const InputSchema = z.object({
+  age: z.string().or(z.number()),
+  gender: z.string(),
   symptoms: z.string().min(2, "Symptoms are required").max(1500, "Input too long"),
   history: z.string().max(1500).optional().default(""),
   forceRoute: z.boolean().default(false).optional(),
@@ -24,7 +26,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid secure input", details: result.error.issues }, { status: 400 });
     }
 
-    const { symptoms, history, forceRoute } = result.data;
+    const { age, gender, symptoms, history, forceRoute } = result.data;
     const lowerSymptoms = symptoms.toLowerCase();
     const wordCount = symptoms.split(" ").filter(Boolean).length;
     const isCriticalKeyword = lowerSymptoms.includes("chest") || lowerSymptoms.includes("breath") || lowerSymptoms.includes("heart") || lowerSymptoms.includes("bleed");
@@ -55,6 +57,7 @@ export async function POST(req: Request) {
           "severity": string (strictly one of: "CRITICAL", "MODERATE", "LOW"),
           "summary": string (a short 1-sentence professional assessment)
         }
+        Patient Demographics: Age ${age}, Gender ${gender}
         Patient Symptoms: ${symptoms}
         Patient History: ${history}`;
         
