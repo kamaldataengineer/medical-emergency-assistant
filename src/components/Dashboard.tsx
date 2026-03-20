@@ -11,6 +11,11 @@ interface DashboardProps {
     department: string;
     severity: "CRITICAL" | "HIGH" | "MODERATE" | "LOW";
     summary: string;
+    alternativeFacility?: {
+      name: string;
+      distance: string;
+      type: string;
+    };
   };
   onReset: () => void;
 }
@@ -40,13 +45,27 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
             </div>
           </div>
           
-          <div className="mt-6 flex gap-4 text-sm text-slate-600 dark:text-slate-300 bg-slate-100/80 dark:bg-slate-800/50 p-4 rounded-xl">
-            <div className="flex-1 flex items-center gap-2">
-              <Navigation className="w-4 h-4" /> {data.distance} away
+          <div className="mt-6 flex flex-col gap-3">
+            <div className="flex gap-4 text-sm text-slate-600 dark:text-slate-300 bg-slate-100/80 dark:bg-slate-800/50 p-4 rounded-xl">
+              <div className="flex-1 flex items-center gap-2">
+                <Navigation className="w-4 h-4" /> {data.distance} away
+              </div>
+              <div className="flex-1 border-l border-slate-300 dark:border-slate-700 pl-4 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-red-500" /> ETA: <span className="font-bold">{data.eta}</span>
+              </div>
             </div>
-            <div className="flex-1 border-l border-slate-300 dark:border-slate-700 pl-4 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-red-500" /> ETA: <span className="font-bold">{data.eta}</span>
-            </div>
+            
+            {data.alternativeFacility && (
+              <div className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-200 bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
+                <div className="bg-indigo-100 dark:bg-indigo-900/50 p-2 rounded-full text-indigo-600 dark:text-indigo-400">
+                  <Hospital className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="font-semibold">Alternative: {data.alternativeFacility.name}</div>
+                  <div className="text-xs opacity-80">{data.alternativeFacility.type} ({data.alternativeFacility.distance} away)</div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

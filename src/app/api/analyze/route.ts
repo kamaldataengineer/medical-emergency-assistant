@@ -2,36 +2,73 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { symptoms, history } = await req.json();
+    const { symptoms, history, forceRoute } = await req.json();
 
-    // ----------------------------------------------------
-    // Mocking Google Gemini SDK Implementation due to lack of API key
-    // For real world: 
-    // const { GoogleGenerativeAI } = require("@google/generative-ai");
-    // const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    // const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro", generationConfig: { responseMimeType: "application/json" } });
-    // const prompt = `Analyze: ${symptoms}...`;
-    // const result = await model.generateContent(prompt);
-    // // ----------------------------------------------------
-
-    // Simulated parsing logic based on highly requested keywords
     const lowerSymptoms = symptoms.toLowerCase();
-    const isCritical = lowerSymptoms.includes("chest") || lowerSymptoms.includes("breath") || lowerSymptoms.includes("heart") || lowerSymptoms.includes("bleed");
+    const wordCount = symptoms.split(" ").filter(Boolean).length;
+    const isCriticalKeyword = lowerSymptoms.includes("chest") || lowerSymptoms.includes("breath") || lowerSymptoms.includes("heart") || lowerSymptoms.includes("bleed");
     
-    // Return mock structured JSON response
-    const mockResponse = {
-      hospitalName: isCritical ? "City General - Cardiac & Trauma Center" : "Community Health Urgent Care",
-      distance: isCritical ? "1.8 miles" : "3.2 miles",
-      eta: isCritical ? "5 mins" : "12 mins",
-      department: isCritical ? "Emergency Operations" : "Express Care",
-      severity: isCritical ? "CRITICAL" : "MODERATE",
-      summary: `AI analyzed the symptoms as ${isCritical ? 'a potentially life-threatening emergency' : 'a standard urgent care case'}, factoring in the provided medical history. A route to the nearest suitable facility has been generated.`
-    };
+    // Feature: Progressive Triage - ask for more info if not critical and vague
+    if (wordCount < 4 && !isCriticalKeyword && !forceRoute) {
+      return NextResponse.json({
+        requiresMoreInfo: true,
+        question: "Your symptoms seem a bit vague. Can you describe the pain or when it started? If you are short on time or patience, you can skip this to get routed immediately."
+      });
+    }
+
+    const isPsych = lowerSymptoms.includes("panic") || lowerSymptoms.includes("anxious") || lowerSymptoms.includes("stress");
+    const isMinor = lowerSymptoms.includes("headache") || lowerSymptoms.includes("cough") || lowerSymptoms.includes("cold");
+    const isCritical = !isPsych && !isMinor && isCriticalKeyword;
+    
+    let responseData;
+
+    if (isCritical) {
+      responseData = {
+        hospitalName: "City General - Cardiac & Trauma Center",
+        distance: "1.8 miles",
+        eta: "5 mins",
+        department: "Emergency Operations",
+        severity: "CRITICAL",
+        summary: `AI analyzed the symptoms as a potentially life-threatening emergency. A route to the nearest trauma facility has been generated.`
+      };
+    } else if (isPsych) {
+      responseData = {
+        hospitalName: "Telehealth Counselor / Local Pharmacy",
+        distance: "0.2 miles (or Online)",
+        eta: "Immediate",
+        department: "Self-Care & Mental Health",
+        severity: "LOW",
+        summary: `Symptoms suggest a psychological distress response (like a panic attack). Emergency room routing aborted to prevent unnecessary hospital visits. Recommendation: Over-the-counter soothing aids or connecting with a telehealth professional.`
+      };
+    } else if (isMinor) {
+      responseData = {
+        hospitalName: "Neighborhood Pharmacy",
+        distance: "0.8 miles",
+        eta: "3 mins",
+        department: "Over-the-Counter",
+        severity: "LOW",
+        summary: `Symptoms indicate a minor ailment. Emergency room is not required. Directed to the nearest open pharmacy for over-the-counter medicine.`
+      };
+    } else {
+      responseData = {
+        hospitalName: "Community Health Urgent Care",
+        distance: "3.2 miles",
+        eta: "12 mins",
+        department: "Express Care",
+        severity: "MODERATE",
+        summary: `AI analyzed the symptoms as a standard urgent care case. A route to the nearest clinic has been generated. Since this is a moderate case, a nearby pharmacy is also recommended for over-the-counter relief.`,
+        alternativeFacility: {
+          name: "Local Pharmacy / CVS",
+          distance: "0.5 miles",
+          type: "Over-the-Counter Medicine"
+        }
+      };
+    }
 
     // Simulate AI model processing time
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    return NextResponse.json(mockResponse);
+    return NextResponse.json(responseData);
   } catch (error) {
     return NextResponse.json({ error: "Failed to process request securely." }, { status: 500 });
   }
