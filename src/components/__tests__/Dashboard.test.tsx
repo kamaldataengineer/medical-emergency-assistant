@@ -1,6 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import Dashboard from "../Dashboard";
 
+jest.mock("@react-google-maps/api", () => ({
+  GoogleMap: ({ children }: any) => <div data-testid="mock-google-map">{children}</div>,
+  LoadScript: ({ children }: any) => <div data-testid="mock-load-script">{children}</div>,
+  Marker: () => <div data-testid="mock-marker" />,
+}));
+
 const mockData = {
   hospitalName: "Memorial Hospital",
   distance: "2.1 miles",
