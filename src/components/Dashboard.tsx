@@ -11,6 +11,7 @@ interface DashboardProps {
     department: string;
     severity: "CRITICAL" | "HIGH" | "MODERATE" | "LOW";
     summary: string;
+    firstAidAdvice?: string;
     alternativeFacility?: {
       name: string;
       distance: string;
@@ -72,10 +73,11 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
         {/* AI Summary Card */}
         <div className="glass-panel rounded-2xl p-6 flex-1 flex flex-col justify-between">
           <div>
-            <div className="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
-              <AlertTriangle className="w-4 h-4" /> Gemini AI Analysis
+            <div className="flex items-center gap-2 text-sm font-semibold text-rose-500 dark:text-rose-400 mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 13h2l2 3 2-6 1 2h2"/></svg>
+              Care Assessment
             </div>
-            <p className="text-slate-800 dark:text-slate-200 line-clamp-3">
+            <p className="text-slate-800 dark:text-slate-200 leading-relaxed text-sm">
               &quot;{data.summary}&quot;
             </p>
           </div>
@@ -85,6 +87,16 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
               {data.severity}
             </span>
           </div>
+          {data.firstAidAdvice && (
+            <div className="mt-4 bg-rose-50 dark:bg-rose-900/20 p-4 rounded-xl border border-rose-200 dark:border-rose-900/50">
+              <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-bold text-sm mb-1">
+                <AlertTriangle className="w-4 h-4" /> Golden Hour Advice
+              </div>
+              <p className="text-sm text-rose-800 dark:text-rose-200 leading-snug">
+                {data.firstAidAdvice}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

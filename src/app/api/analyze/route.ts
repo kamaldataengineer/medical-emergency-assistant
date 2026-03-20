@@ -40,23 +40,40 @@ export async function POST(req: Request) {
     }
 
     const isPsych = lowerSymptoms.includes("panic") || lowerSymptoms.includes("anxious") || lowerSymptoms.includes("stress");
-    const isMinor = lowerSymptoms.includes("headache") || lowerSymptoms.includes("cough") || lowerSymptoms.includes("cold");
-    const isCritical = !isPsych && !isMinor && isCriticalKeyword;
+    const isMinor = lowerSymptoms.includes("headache") || lowerSymptoms.includes("cough") || lowerSymptoms.includes("cold") || lowerSymptoms.includes("mild");
+    const isThreat = lowerSymptoms.includes("kill") || lowerSymptoms.includes("threat") || lowerSymptoms.includes("follow") || lowerSymptoms.includes("unsafe") || lowerSymptoms.includes("attack");
+    const isCritical = !isPsych && !isMinor && !isThreat && isCriticalKeyword;
     
     // 4. Actual Google Gemini Integration
     let responseData = null;
 
     if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== "mock-key") {
       try {
-        const prompt = `You are a medical triage AI. Analyze the following and return ONLY a valid raw JSON object exactly matching this schema:
+        const prompt = `You are an empathetic, highly intelligent medical emergency assistant. Speak directly to the patient in a warm, caring, and urgent human tone.
+        
+        Based on the demographics, medical history, and symptoms, you must decide the safest facility. 
+        CRUCIAL RULES:
+        1. If the user mentions ANY physical threat, violence, someone trying to kill/hurt them, or feeling unsafe from another person -> YOU MUST ROUTE TO: "Nearest Police Station" or "Nearest Safe Haven".
+        2. If CRITICAL PHYSICAL medical issue -> "Nearest Emergency Room"
+        3. If MODERATE PHYSICAL -> "Nearest Urgent Care"
+        4. If MINOR PHYSICAL -> "Nearest Pharmacy"
+        
+        Return ONLY a valid raw JSON object exactly matching this schema:
         {
-          "hospitalName": string (e.g. "City General Trauma Center" or "Nearest Pharmacy"),
-          "distance": string (e.g. "1.8 miles"),
-          "eta": string (e.g. "5 mins"),
-          "department": string (e.g. "Emergency Operations"),
+          "hospitalName": string (e.g. "Nearest Pharmacy", "Nearest Emergency Hospital", "Nearest Police Station"),
+          "distance": string (e.g. "Nearby", "Calculating..."),
+          "eta": string (e.g. "Immediate", "5 mins"),
+          "department": string (e.g. "Emergency Dept", "Law Enforcement", "Over-the-Counter"),
           "severity": string (strictly one of: "CRITICAL", "MODERATE", "LOW"),
-          "summary": string (a short 1-sentence professional assessment)
+          "summary": string (A compassionate, human-like paragraph speaking directly to the user. Explain what is happening and why you routed them there.),
+          "firstAidAdvice": string (Optional: Immediate golden-hour action to take while waiting for help like applying pressure, taking aspirin, or DO NOT move the patient if hit by vehicle. BE CONCISE.),
+          "alternativeFacility": {
+             "name": string (e.g., "Nearest Pharmacy", "Nearest Automated Defibrillator"),
+             "distance": string,
+             "type": string
+          }
         }
+        
         Patient Demographics: Age ${age}, Gender ${gender}
         Patient Symptoms: ${symptoms}
         Patient History: ${history}`;
@@ -76,14 +93,16 @@ export async function POST(req: Request) {
 
     // 5. Intelligent local fallback if API key missing
     if (!responseData) {
-      if (isCritical) {
-        responseData = { hospitalName: "City General - Cardiac & Trauma Center", distance: "1.8 miles", eta: "5 mins", department: "Emergency Operations", severity: "CRITICAL", summary: "AI heuristically analyzed the symptoms as potentially life-threatening. A route to the nearest trauma facility has been generated." };
+      if (isThreat) {
+        responseData = { hospitalName: "Nearest Police Station", distance: "Nearby", eta: "Immediate", department: "Law Enforcement", severity: "CRITICAL", summary: "You are in immediate physical danger. Your safety is the absolute priority. I am routing you to the nearest police station.", firstAidAdvice: "Do not confront the threat. Find a public, well-lit area or lock your doors immediately." };
+      } else if (isCritical) {
+        responseData = { hospitalName: "City General - Cardiac & Trauma Center", distance: "1.8 miles", eta: "5 mins", department: "Emergency Operations", severity: "CRITICAL", summary: "I understand you are experiencing critical symptoms. A route to the nearest trauma facility has been generated. Please stay calm and try to find someone to drive you.", firstAidAdvice: "If you were in an accident, do not move your neck. If you are bleeding heavily, apply direct pressure. If experiencing chest pain, chew an aspirin if available and you are not allergic.", alternativeFacility: { name: "Nearest Pharmacy", distance: "0.5 miles", type: "First Aid Supplies" } };
       } else if (isPsych) {
-        responseData = { hospitalName: "Telehealth Counselor / Local Pharmacy", distance: "0.2 miles", eta: "Immediate", department: "Self-Care", severity: "LOW", summary: "Emergency room routing aborted to prevent unnecessary visits. Directed to a soothing environment or pharmacy." };
+        responseData = { hospitalName: "Telehealth Counselor / Local Pharmacy", distance: "0.2 miles", eta: "Immediate", department: "Self-Care", severity: "LOW", summary: "It sounds like you're going through a lot right now. Emergency room routing has been paused to prevent a stressful visit. We've directed you to a pharmacy for temporary soothing relief.", firstAidAdvice: "Practice deep, slow box breathing. Inhale for 4 seconds, hold for 4, exhale for 4." };
       } else if (isMinor) {
-        responseData = { hospitalName: "Neighborhood Pharmacy", distance: "0.8 miles", eta: "3 mins", department: "Over-the-Counter", severity: "LOW", summary: "Symptoms indicate a minor ailment. Directed to the nearest open pharmacy." };
+        responseData = { hospitalName: "Neighborhood Pharmacy", distance: "0.8 miles", eta: "3 mins", department: "Over-the-Counter", severity: "LOW", summary: "These symptoms indicate a minor ailment. I'm directing you to the nearest pharmacy where you can get some relief.", firstAidAdvice: "Rest and stay hydrated. Pick up over-the-counter medication at the pharmacy." };
       } else {
-        responseData = { hospitalName: "Community Health Urgent Care", distance: "3.2 miles", eta: "12 mins", department: "Express Care", severity: "MODERATE", summary: "Standard urgent care case. A route to the nearest clinic has been generated." };
+        responseData = { hospitalName: "Community Health Urgent Care", distance: "3.2 miles", eta: "12 mins", department: "Express Care", severity: "MODERATE", summary: "You're experiencing a standard urgent care case. I've routed you to the nearest clinic so a professional can take a look at you.", firstAidAdvice: "Avoid eating or drinking heavily until seen by a doctor, in case tests are needed.", alternativeFacility: { name: "Nearest Pharmacy", distance: "1.2 miles", type: "Over-the-counter Medicine" } };
       }
     }
 
