@@ -68,7 +68,7 @@ export default function Home(): ReactElement {
         setStatus("complete");
       }, 1500);
     }
-  }, [initialInput]);
+  }, []);
 
   const handleFollowUpSubmit = (additionalInfo: string) => {
     handleAnalyze({ ...initialInput, symptoms: `${initialInput.symptoms}. Additional details: ${additionalInfo}` }, true);
