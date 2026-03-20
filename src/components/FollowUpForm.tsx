@@ -34,7 +34,7 @@ export default function FollowUpForm({ question, onSubmit, onSkip }: FollowUpFor
             AI Needs Clarification
           </h2>
           <p className="text-slate-700 dark:text-slate-200 font-medium mt-3 leading-relaxed bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl shadow-inner border border-slate-200/50 dark:border-slate-700/50 relative">
-            "{question}"
+            &quot;{question}&quot;
             <span className="absolute -left-2 top-4 w-4 h-4 bg-slate-50 dark:bg-slate-800/50 transform rotate-45 border-l border-b border-transparent dark:border-transparent"></span>
           </p>
         </div>

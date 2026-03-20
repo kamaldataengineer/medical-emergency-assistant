@@ -76,7 +76,7 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
               <AlertTriangle className="w-4 h-4" /> Gemini AI Analysis
             </div>
             <p className="text-slate-800 dark:text-slate-200 line-clamp-3">
-              "{data.summary}"
+              &quot;{data.summary}&quot;
             </p>
           </div>
           <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
@@ -90,13 +90,25 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
 
       {/* Map & Mock Alerts Section */}
       <div className="glass-panel rounded-2xl overflow-hidden shadow-sm flex flex-col md:flex-row min-h-[16rem]">
-        <div className="flex-1 relative bg-slate-200 dark:bg-slate-800 flex items-center justify-center p-8">
-           <div className="absolute inset-0 bg-slate-200 dark:bg-slate-900 opacity-30"></div>
-           <div className="z-10 bg-white/90 dark:bg-black/90 backdrop-blur-md p-5 rounded-xl border border-slate-200 dark:border-slate-700 text-center max-w-xs w-full shadow-lg">
-              <MapPin className="w-8 h-8 mx-auto text-primary animate-bounce mb-3" />
-              <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Interactive Map Mapped</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Route calculations bypassed for this demo. Hospital coordinates simulated.</p>
-           </div>
+        <div className="flex-1 relative bg-slate-200 dark:bg-slate-800 flex items-center justify-center p-0 min-h-[16rem]">
+           {process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ? (
+             <iframe
+               title="Google Maps Route"
+               width="100%"
+               height="100%"
+               style={{ border: 0, minHeight: '100%', position: 'absolute', inset: 0 }}
+               loading="lazy"
+               allowFullScreen
+               referrerPolicy="no-referrer-when-downgrade"
+               src={`https://www.google.com/maps/embed/v1/directions?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}&origin=Current+Location&destination=${encodeURIComponent(data.hospitalName)}`}
+             ></iframe>
+           ) : (
+             <div className="z-10 bg-white/90 dark:bg-black/90 backdrop-blur-md p-5 rounded-xl border border-slate-200 dark:border-slate-700 text-center max-w-xs w-full shadow-lg m-8">
+                <MapPin className="w-8 h-8 mx-auto text-primary animate-bounce mb-3" />
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Google Maps Integration</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Live routing requires NEXT_PUBLIC_GOOGLE_MAPS_KEY in .env.</p>
+             </div>
+           )}
         </div>
         
         <div className="w-full md:w-1/3 bg-slate-50/90 dark:bg-slate-900/90 p-6 flex flex-col justify-center gap-4 border-l border-slate-200 dark:border-slate-800">

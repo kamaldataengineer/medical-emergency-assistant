@@ -8,7 +8,7 @@ import FollowUpForm from "@/components/FollowUpForm";
 
 export default function Home() {
   const [status, setStatus] = useState<"idle" | "processing" | "needs_info" | "complete">("idle");
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<React.ComponentProps<typeof Dashboard>["data"] | null>(null);
   
   // Keep track of the initial input to send alongside follow-up info
   const [initialInput, setInitialInput] = useState({ symptoms: "", history: "" });
